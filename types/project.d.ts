@@ -8,7 +8,7 @@ declare module 'project' {
     TransactionResult,
     TruffleArtifacts
   } from 'truffle';
-    import { AnyNumber } from 'web3';
+  import { AnyNumber } from 'web3';
 
   namespace project {
     interface Migrations extends ContractBase {
@@ -22,29 +22,17 @@ declare module 'project' {
         options?: TransactionOptions
       ): Promise<TransactionResult>;
     }
-    
-    interface Exchange extends ContractBase {
-      exampleAttribute(): Promise<BigNumber>;
 
-      exampleFunction(
-        newValue: AnyNumber,
-        options?: TransactionOptions
-      ): Promise<TransactionResult>;
-    }
-    
-    
-    interface ExampleAttributeChangedEvent {
-      newValue: BigNumber;
-    }
+    interface Exchange extends ContractBase {}
 
     interface MigrationsContract extends Contract<Migrations> {
       'new'(options?: TransactionOptions): Promise<Migrations>;
     }
-    
+
     interface ExchangeContract extends Contract<Exchange> {
       'new'(options?: TransactionOptions): Promise<Exchange>;
     }
-    
+
     interface ProjectArtifacts extends TruffleArtifacts {
       require(name: string): AnyContract;
       require(name: './Migrations.sol'): MigrationsContract;
