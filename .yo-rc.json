@@ -1,0 +1,12 @@
+{
+  "generator-ts-truffle": {
+    "name": "adventurer-exchange",
+    "mainType": "project",
+    "author": "kruligh",
+    "authorUrl": "",
+    "contracts": [
+      "Exchange"
+    ],
+    "solidityVersion": "0.4.19"
+  }
+}
