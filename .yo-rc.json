@@ -5,7 +5,8 @@
     "author": "kruligh",
     "authorUrl": "",
     "contracts": [
-      "Exchange"
+      "Exchange",
+      "Mine"
     ],
     "solidityVersion": "0.4.19"
   }
