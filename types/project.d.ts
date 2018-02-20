@@ -23,20 +23,58 @@ declare module 'project' {
       ): Promise<TransactionResult>;
     }
 
-    interface Exchange extends ContractBase {}
+    interface ERC20 extends ContractBase {
+      totalSupply(): Promise<BigNumber>;
+      balanceOf(who: Address): Promise<BigNumber>;
+
+      transfer(
+          to: Address,
+          amount: BigNumber,
+          options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      allowance(owner: Address, spender: Address): Promise<BigNumber>;
+
+      transferFrom(
+          from: Address,
+          to: Address,
+          value: AnyNumber,
+          options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      approve(
+          spender: Address,
+          value: AnyNumber,
+          options?: TransactionOptions
+      ): Promise<TransactionResult>;
+    }
+
+    interface TransferEvent {
+          from: Address;
+          to: Address;
+          value: BigNumber;
+      }
+
+    interface ApprovalEvent {
+          owner: Address;
+          spender: Address;
+          value: BigNumber;
+      }
+
+    interface Resource extends ERC20 {}
 
     interface MigrationsContract extends Contract<Migrations> {
       'new'(options?: TransactionOptions): Promise<Migrations>;
     }
 
-    interface ExchangeContract extends Contract<Exchange> {
-      'new'(options?: TransactionOptions): Promise<Exchange>;
+    interface ResourceContract extends Contract<Resource> {
+      'new'(options?: TransactionOptions): Promise<Resource>;
     }
 
     interface ProjectArtifacts extends TruffleArtifacts {
       require(name: string): AnyContract;
       require(name: './Migrations.sol'): MigrationsContract;
-      require(name: './Exchange.sol'): ExchangeContract;
+      require(name: './ResourceToken.sol'): ResourceContract;
     }
   }
 

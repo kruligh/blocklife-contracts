@@ -2,7 +2,7 @@ import { assert } from 'chai';
 
 import * as Web3 from 'web3';
 
-import { Exchange, ProjectArtifacts } from 'project';
+import {ProjectArtifacts, Resource} from 'project';
 
 import { ContractContextDefinition } from 'truffle';
 
@@ -10,16 +10,15 @@ declare const web3: Web3;
 declare const artifacts: ProjectArtifacts;
 declare const contract: ContractContextDefinition;
 
-const ExchangeContract = artifacts.require('./Exchange.sol');
+const ResourceContract = artifacts.require('./ResourceToken.sol');
 
-contract('Exchange', accounts => {
+contract('ResourceToken', accounts => {
   const owner = accounts[9];
+  let resource: Resource;
 
   describe('#ctor', () => {
-    let exchange: Exchange;
-
     it('should create contract', async () => {
-      exchange = await ExchangeContract.new({ from: owner });
+      resource = await ResourceContract.new({ from: owner });
       assert.isOk(contract);
     });
   });
