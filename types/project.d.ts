@@ -28,38 +28,38 @@ declare module 'project' {
       balanceOf(who: Address): Promise<BigNumber>;
 
       transfer(
-          to: Address,
-          amount: BigNumber,
-          options?: TransactionOptions
+        to: Address,
+        amount: BigNumber,
+        options?: TransactionOptions
       ): Promise<TransactionResult>;
 
       allowance(owner: Address, spender: Address): Promise<BigNumber>;
 
       transferFrom(
-          from: Address,
-          to: Address,
-          value: AnyNumber,
-          options?: TransactionOptions
+        from: Address,
+        to: Address,
+        value: AnyNumber,
+        options?: TransactionOptions
       ): Promise<TransactionResult>;
 
       approve(
-          spender: Address,
-          value: AnyNumber,
-          options?: TransactionOptions
+        spender: Address,
+        value: AnyNumber,
+        options?: TransactionOptions
       ): Promise<TransactionResult>;
     }
 
     interface TransferEvent {
-          from: Address;
-          to: Address;
-          value: BigNumber;
-      }
+      from: Address;
+      to: Address;
+      value: BigNumber;
+    }
 
     interface ApprovalEvent {
-          owner: Address;
-          spender: Address;
-          value: BigNumber;
-      }
+      owner: Address;
+      spender: Address;
+      value: BigNumber;
+    }
 
     interface Resource extends ERC20 {}
 
@@ -68,7 +68,12 @@ declare module 'project' {
     }
 
     interface ResourceContract extends Contract<Resource> {
-      'new'(options?: TransactionOptions): Promise<Resource>;
+      'new'(
+        name: string,
+        symbol: string,
+        decimals: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<Resource>;
     }
 
     interface ProjectArtifacts extends TruffleArtifacts {
