@@ -4,7 +4,6 @@
     "module": "commonjs",
     "moduleResolution": "node",
     "baseUrl": ".",
-    "strict": true,
     "noImplicitAny": true,
     "types": ["bignumber.js", "chai", "mocha", "node"]
   },

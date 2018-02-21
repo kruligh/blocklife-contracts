@@ -61,7 +61,35 @@ declare module 'project' {
       value: BigNumber;
     }
 
-    interface Resource extends ERC20 {}
+    interface Mintable {
+      isMintingManager(addr: Address): Promise<boolean>;
+
+      addMintingManager(
+        addr: Address,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      mint(
+        to: Address,
+        amount: AnyNumber,
+        options?: TransactionOptions
+      ): Promise<TransactionResult>;
+
+      finishMinting(options?: TransactionOptions): Promise<TransactionResult>;
+    }
+
+    interface MintedEvent {
+      to: Address;
+      amount: BigNumber;
+    }
+
+    interface MintingManagerApprovedEvent {
+      addr: Address;
+    }
+
+    interface Resource extends ERC20, Mintable {
+
+    }
 
     interface MigrationsContract extends Contract<Migrations> {
       'new'(options?: TransactionOptions): Promise<Migrations>;
