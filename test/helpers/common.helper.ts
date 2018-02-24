@@ -5,7 +5,7 @@ import { assert } from 'chai';
 import { findLast, propEq } from 'ramda';
 import { TransactionLog, TransactionResult } from 'truffle';
 
-import { ETH_DECIMALS } from '../utils';
+import { ETH_DECIMALS } from '../../utils/index';
 
 declare const web3: Web3;
 

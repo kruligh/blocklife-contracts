@@ -12,7 +12,7 @@ import {
   assertReverts,
   findLastLog,
   ZERO_ADDRESS
-} from '../helpers';
+} from '../helpers/common.helper';
 import { ResourceTestContext } from './context';
 
 declare const web3: Web3;
