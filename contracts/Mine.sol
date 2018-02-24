@@ -3,7 +3,7 @@ pragma solidity 0.4.19;
 import {Ownable} from "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
-contract ResourceToken {
+contract ResourceTokenIfc {
     function isTransferManager(address addr) public returns (bool);
 
     function isMintingManager(address addr) public returns (bool);
@@ -19,7 +19,7 @@ contract Mine is Ownable {
     }
 
     struct ResourceCost {
-        ResourceToken resource;
+        ResourceTokenIfc resource;
         uint256 amount;
     }
 
@@ -32,7 +32,7 @@ contract Mine is Ownable {
         _;
     }
 
-    function Mine(ResourceToken[] resources, uint256[] amounts)
+    function Mine(ResourceTokenIfc[] resources, uint256[] amounts)
     public
     onlyEqual(resources.length, amounts.length)
     {
