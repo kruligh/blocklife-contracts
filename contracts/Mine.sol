@@ -13,7 +13,7 @@ contract Mine is Ownable {
     struct MineInstance {
         uint256 buildTime;
         uint256 lastMiningTime;
-        uint256 totalMined;
+        uint256 mined;
     }
 
     struct ResourceCost {
@@ -21,17 +21,27 @@ contract Mine is Ownable {
         uint256 amount;
     }
 
-    mapping(address => MineInstance) private instancesByOwner;
+    mapping(address => MineInstance[]) private instancesByOwner;
 
-    ResourceCost[] private cost;
+    ResourceCost[] private costs;
 
     modifier onlyEqual(uint256 a, uint256 b) {
         require(a == b);
         _;
     }
 
-    modifier onlyWithoutPrices(){
-        require(cost.length == 0);
+    modifier onlyWithoutCost(){
+        require(costs.length == 0);
+        _;
+    }
+
+    modifier onlyIfCostExists(uint256 idx) {
+        require(idx < costs.length);
+        _;
+    }
+
+    modifier onlyIfInstanceExists(uint256 idx) {
+        require(idx < instancesByOwner[msg.sender].length);
         _;
     }
 
@@ -39,7 +49,7 @@ contract Mine is Ownable {
     function setCost(ResourceTokenIfc[] resources, uint256[] amounts)
     public
     onlyOwner
-    onlyWithoutPrices
+    onlyWithoutCost
     onlyEqual(resources.length, amounts.length)
     {
         for (uint256 i = 0; i < resources.length; i++) {
@@ -47,27 +57,49 @@ contract Mine is Ownable {
             require(amounts[i] > 0);
             require(resources[i].isMintingManager(this));
 
-            cost.push(ResourceCost({
+            costs.push(ResourceCost({
                 resource : resources[i],
                 amount : amounts[i]
                 }));
         }
     }
 
-    function buildMine() public {
+    function buildInstance() public {
 
-        instancesByOwner[msg.sender] = MineInstance({
+        instancesByOwner[msg.sender].push(MineInstance({
             buildTime : now,
             lastMiningTime : now,
-            totalMined : 0
-            });
+            mined : 0
+            }));
     }
 
-    function getCostResourcesCount() public view returns (uint256){
-        return cost.length;
+    function getCosts() public view returns (uint256){
+        return costs.length;
     }
 
-    function getCost(uint8 idx) public view returns (address resource, uint256 amount){
-        return (cost[idx].resource, cost[idx].amount);
+    function getCost(uint8 idx)
+    public
+    view
+    onlyIfCostExists(idx)
+    returns (address resource, uint256 amount){
+        return (costs[idx].resource, costs[idx].amount);
+    }
+
+    function getInstances() public view returns (uint256) {
+        return instancesByOwner[msg.sender].length;
+    }
+
+    function getInstance(uint256 idx)
+    public
+    view
+    onlyIfInstanceExists(idx)
+    returns (
+        uint256 buildTime,
+        uint256 lastMinedTime,
+        uint256 mined
+    )
+    {
+        MineInstance memory instance = instancesByOwner[msg.sender][idx];
+        return (instance.buildTime, instance.lastMiningTime, instance.mined);
     }
 }

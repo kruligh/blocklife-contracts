@@ -83,14 +83,26 @@ declare module 'project' {
             amount: BigNumber;
         }
 
+        interface MineInstance {
+            buildTime: BigNumber;
+            lastMiningTime: BigNumber;
+            mined: BigNumber;
+        }
+
         interface Mine extends ContractBase {
             setCost(resources: Address[],
                     amounts: AnyNumber[],
                     options?: TransactionOptions): Promise<void>;
 
-            getCostResourcesCount(): Promise<BigNumber>;
+            buildInstance(options?: TransactionOptions): Promise<TransactionResult>;
+
+            getCosts(): Promise<BigNumber>;
 
             getCost(index: AnyNumber): Promise<any[]>;
+
+            getInstances(options?: TransactionOptions): Promise<BigNumber>;
+
+            getInstance(index: AnyNumber, options?: TransactionOptions): Promise<any[]>;
         }
 
         interface MigrationsContract extends Contract<Migrations> {

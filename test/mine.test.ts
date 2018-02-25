@@ -44,7 +44,7 @@ contract('Mine', (accounts: Address[]) => {
             assert.isTrue(await resource.isMintingManager(mine.address));
             const amount = new BigNumber(500);
             await mine.setCost([resource.address], [amount], {from: owner});
-            const resourceCost = mineHelper.parseResourceCost(await mine.getCost(0));
+            const resourceCost = MineHelper.parseResourceCost(await mine.getCost(0));
             assertNumberEqual(resourceCost.amount, amount);
             assert.equal(resourceCost.resource, resource.address);
         });
@@ -66,11 +66,11 @@ contract('Mine', (accounts: Address[]) => {
                 {from: owner}
             );
 
-            const resourceACost = mineHelper.parseResourceCost(await mine.getCost(0));
+            const resourceACost = MineHelper.parseResourceCost(await mine.getCost(0));
             assertNumberEqual(resourceACost.amount, amountResourceA);
             assert.equal(resourceACost.resource, resourceA.address);
 
-            const resourceBCost = mineHelper.parseResourceCost(await mine.getCost(1));
+            const resourceBCost = MineHelper.parseResourceCost(await mine.getCost(1));
             assertNumberEqual(resourceBCost.amount, amountResourceB);
             assert.equal(resourceBCost.resource, resourceB.address);
         });
@@ -149,6 +149,28 @@ contract('Mine', (accounts: Address[]) => {
                     from: owner
                 });
             });
+        });
+    });
+
+    describe.only('#build', () => {
+
+        const buyer = notOwner;
+
+        beforeEach(async () => {
+            resourceHelper = new ResourceHelper(owner);
+            resource = await resourceHelper.createContract();
+            assert.isOk(resource);
+            mineHelper = new MineHelper(owner);
+            mine = await mineHelper.createContract();
+            assert.isOk(mine);
+        });
+
+        it('Should build', async () => {
+            await mine.buildInstance({from: buyer});
+            assertNumberEqual(await mine.getInstances({from: buyer}), new BigNumber(1));
+            const mineInstance = MineHelper.parseMineInstance(await mine.getInstance(0, {from: buyer}));
+            assertNumberEqual(mineInstance.buildTime, mineInstance.lastMiningTime);
+            assertNumberEqual(mineInstance.mined, new BigNumber(0));
         });
     });
 });
