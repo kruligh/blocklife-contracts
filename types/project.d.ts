@@ -1,5 +1,5 @@
 declare module 'project' {
-    import {BigNumber} from 'bignumber.js';
+    import { BigNumber } from 'bignumber.js';
     import {
         AnyContract,
         Contract,
@@ -8,15 +8,13 @@ declare module 'project' {
         TransactionResult,
         TruffleArtifacts
     } from 'truffle';
-    import {AnyNumber} from 'web3';
+    import { AnyNumber } from 'web3';
 
     namespace project {
         interface Migrations extends ContractBase {
-            setCompleted(completed: number,
-                         options?: TransactionOptions): Promise<TransactionResult>;
+            setCompleted(completed: number, options?: TransactionOptions): Promise<TransactionResult>;
 
-            upgrade(address: Address,
-                    options?: TransactionOptions): Promise<TransactionResult>;
+            upgrade(address: Address, options?: TransactionOptions): Promise<TransactionResult>;
         }
 
         interface ERC20 extends ContractBase {
@@ -24,20 +22,18 @@ declare module 'project' {
 
             balanceOf(who: Address): Promise<BigNumber>;
 
-            transfer(to: Address,
-                     amount: BigNumber,
-                     options?: TransactionOptions): Promise<TransactionResult>;
+            transfer(to: Address, amount: BigNumber, options?: TransactionOptions): Promise<TransactionResult>;
 
             allowance(owner: Address, spender: Address): Promise<BigNumber>;
 
-            transferFrom(from: Address,
-                         to: Address,
-                         value: AnyNumber,
-                         options?: TransactionOptions): Promise<TransactionResult>;
+            transferFrom(
+                from: Address,
+                to: Address,
+                value: AnyNumber,
+                options?: TransactionOptions
+            ): Promise<TransactionResult>;
 
-            approve(spender: Address,
-                    value: AnyNumber,
-                    options?: TransactionOptions): Promise<TransactionResult>;
+            approve(spender: Address, value: AnyNumber, options?: TransactionOptions): Promise<TransactionResult>;
         }
 
         interface TransferEvent {
@@ -53,15 +49,11 @@ declare module 'project' {
         }
 
         interface Mintable {
-            isMintingManager(addr: Address,
-                             options?: TransactionOptions): Promise<boolean>;
+            isMintingManager(addr: Address, options?: TransactionOptions): Promise<boolean>;
 
-            addMintingManager(addr: Address,
-                              options?: TransactionOptions): Promise<TransactionResult>;
+            addMintingManager(addr: Address, options?: TransactionOptions): Promise<TransactionResult>;
 
-            mint(to: Address,
-                 amount: AnyNumber,
-                 options?: TransactionOptions): Promise<TransactionResult>;
+            mint(to: Address, amount: AnyNumber, options?: TransactionOptions): Promise<TransactionResult>;
 
             finishMinting(options?: TransactionOptions): Promise<TransactionResult>;
         }
@@ -75,8 +67,7 @@ declare module 'project' {
             addr: Address;
         }
 
-        interface Resource extends ERC20, Mintable {
-        }
+        interface Resource extends ERC20, Mintable {}
 
         interface ResourceCost {
             resource: Address;
@@ -90,9 +81,7 @@ declare module 'project' {
         }
 
         interface Mine extends ContractBase {
-            setCost(resources: Address[],
-                    amounts: AnyNumber[],
-                    options?: TransactionOptions): Promise<void>;
+            setCost(resources: Address[], amounts: AnyNumber[], options?: TransactionOptions): Promise<void>;
 
             buildInstance(options?: TransactionOptions): Promise<TransactionResult>;
 
@@ -110,10 +99,7 @@ declare module 'project' {
         }
 
         interface ResourceContract extends Contract<Resource> {
-            'new'(name: string,
-                  symbol: string,
-                  decimals: AnyNumber,
-                  options?: TransactionOptions): Promise<Resource>;
+            'new'(name: string, symbol: string, decimals: AnyNumber, options?: TransactionOptions): Promise<Resource>;
         }
 
         interface MineContract extends Contract<Mine> {

@@ -1,13 +1,10 @@
-import {assert} from 'chai';
+import { assert } from 'chai';
 
-import {Resource} from 'project';
-import {ContractContextDefinition} from 'truffle';
-import {ResourceHelper} from './helpers/resource.helper';
-import {ResourceTestContext} from './resource/context';
-import {
-    testAddMintingManager,
-    testMint
-} from './resource/mintableresource.test';
+import { Resource } from 'project';
+import { ContractContextDefinition } from 'truffle';
+import { ResourceHelper } from './helpers/resource.helper';
+import { ResourceTestContext } from './resource/context';
+import { testAddMintingManager, testMint } from './resource/mintableresource.test';
 
 declare const contract: ContractContextDefinition;
 
@@ -28,10 +25,7 @@ contract('ResourceToken', (accounts: Address[]) => {
     });
 
     context('Given deployed token contract', () => {
-        const ctx: ResourceTestContext = new ResourceTestContext(
-            accounts.filter(acc => acc !== owner),
-            owner
-        );
+        const ctx: ResourceTestContext = new ResourceTestContext(accounts.filter(acc => acc !== owner), owner);
 
         beforeEach(async () => {
             ctx.token = await resourceHelper.createContract();
