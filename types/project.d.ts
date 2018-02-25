@@ -1,5 +1,5 @@
 declare module 'project' {
-    import { BigNumber } from 'bignumber.js';
+    import {BigNumber} from 'bignumber.js';
     import {
         AnyContract,
         Contract,
@@ -8,7 +8,7 @@ declare module 'project' {
         TransactionResult,
         TruffleArtifacts
     } from 'truffle';
-    import { AnyNumber } from 'web3';
+    import {AnyNumber} from 'web3';
 
     namespace project {
         interface Migrations extends ContractBase {
@@ -26,12 +26,10 @@ declare module 'project' {
 
             allowance(owner: Address, spender: Address): Promise<BigNumber>;
 
-            transferFrom(
-                from: Address,
-                to: Address,
-                value: AnyNumber,
-                options?: TransactionOptions
-            ): Promise<TransactionResult>;
+            transferFrom(from: Address,
+                         to: Address,
+                         value: AnyNumber,
+                         options?: TransactionOptions): Promise<TransactionResult>;
 
             approve(spender: Address, value: AnyNumber, options?: TransactionOptions): Promise<TransactionResult>;
         }
@@ -67,7 +65,8 @@ declare module 'project' {
             addr: Address;
         }
 
-        interface Resource extends ERC20, Mintable {}
+        interface Resource extends ERC20, Mintable {
+        }
 
         interface ResourceCost {
             resource: Address;
@@ -80,8 +79,11 @@ declare module 'project' {
             mined: BigNumber;
         }
 
+        type CostSet = {};
+        type InstanceBuild = {};
+
         interface Mine extends ContractBase {
-            setCost(resources: Address[], amounts: AnyNumber[], options?: TransactionOptions): Promise<void>;
+            setCost(resources: Address[], amounts: AnyNumber[], opt?: TransactionOptions): Promise<TransactionResult>;
 
             buildInstance(options?: TransactionOptions): Promise<TransactionResult>;
 

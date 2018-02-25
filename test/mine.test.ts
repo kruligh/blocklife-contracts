@@ -1,9 +1,9 @@
 import {assert} from 'chai';
 
 import BigNumber from 'bignumber.js';
-import {Mine, MineContract, ProjectArtifacts, Resource} from 'project';
+import {CostSet, Mine, MineContract, ProjectArtifacts, Resource} from 'project';
 import {ContractContextDefinition} from 'truffle';
-import {assertNumberEqual, assertReverts, ZERO_ADDRESS} from './helpers/common.helper';
+import {assertNumberEqual, assertReverts, findLastLog, ZERO_ADDRESS} from './helpers/common.helper';
 import {MineHelper} from './helpers/mine.helper';
 import {ResourceHelper} from './helpers/resource.helper';
 
@@ -40,9 +40,20 @@ contract('Mine', (accounts: Address[]) => {
             assert.isTrue(await resource.isMintingManager(mine.address));
             const amount = new BigNumber(500);
             await mine.setCost([resource.address], [amount], {from: owner});
+
             const resourceCost = MineHelper.parseResourceCost(await mine.getCost(0));
+
             assertNumberEqual(resourceCost.amount, amount);
             assert.equal(resourceCost.resource, resource.address);
+        });
+
+        it('should emit CostSet', async () => {
+            await resource.addMintingManager(mine.address, {from: owner});
+            assert.isTrue(await resource.isMintingManager(mine.address));
+
+            const tx = await mine.setCost([resource.address], [new BigNumber(500)], {from: owner});
+
+            assert.isOk(findLastLog(tx, 'CostSet') as CostSet);
         });
 
         it('should set multiple resources cost', async () => {
@@ -80,9 +91,11 @@ contract('Mine', (accounts: Address[]) => {
         it('should revert if price already set', async () => {
             await resource.addMintingManager(mine.address, {from: owner});
             assert.isTrue(await resource.isMintingManager(mine.address));
+
             await mine.setCost([resource.address], [new BigNumber(500)], {
                 from: owner
             });
+
             await assertReverts(async () => {
                 await mine.setCost([resource.address], [new BigNumber(500)], {
                     from: owner
@@ -93,6 +106,7 @@ contract('Mine', (accounts: Address[]) => {
         it('should revert if amounts.length>resources.length', async () => {
             await resource.addMintingManager(mine.address, {from: owner});
             assert.isTrue(await resource.isMintingManager(mine.address));
+
             await assertReverts(async () => {
                 await mine.setCost([resource.address], [new BigNumber(500), new BigNumber(600)], {from: owner});
             });
@@ -121,6 +135,7 @@ contract('Mine', (accounts: Address[]) => {
         it('should revert if amount is zero', async () => {
             await resource.addMintingManager(mine.address, {from: owner});
             assert.isTrue(await resource.isMintingManager(mine.address));
+
             await assertReverts(async () => {
                 await mine.setCost([resource.address], [new BigNumber(0)], {
                     from: owner
@@ -130,6 +145,7 @@ contract('Mine', (accounts: Address[]) => {
 
         it('should revert if is not minting manager', async () => {
             assert.isFalse(await resource.isMintingManager(mine.address));
+
             await assertReverts(async () => {
                 await mine.setCost([resource.address], [new BigNumber(500)], {
                     from: owner
@@ -186,5 +202,22 @@ contract('Mine', (accounts: Address[]) => {
             assertNumberEqual(mineInstance.buildTime, mineInstance.lastMiningTime);
             assertNumberEqual(mineInstance.mined, new BigNumber(0));
         });
+
+        it.skip('Should emit InstanceBuild', async () => {
+
+        });
+
+        it.skip('Should build when cost multiple resources', async () => {
+
+        });
+
+        it.skip('Should transfer token resources', async () => {
+
+        });
+
+        it.skip('Should revert if not afford', async () => {
+
+        });
+
     });
 });

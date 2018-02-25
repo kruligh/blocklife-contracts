@@ -45,6 +45,8 @@ contract Mine is Ownable {
         _;
     }
 
+    event CostSet();
+    event InstanceBuild();
 
     function setCost(ResourceTokenIfc[] resources, uint256[] amounts)
     public
@@ -62,6 +64,8 @@ contract Mine is Ownable {
                 amount : amounts[i]
                 }));
         }
+
+        CostSet();
     }
 
     function buildInstance() public {
@@ -71,6 +75,8 @@ contract Mine is Ownable {
             lastMiningTime : now,
             mined : 0
             }));
+
+        InstanceBuild();
     }
 
     function getCosts() public view returns (uint256){
