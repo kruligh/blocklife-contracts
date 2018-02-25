@@ -81,7 +81,7 @@ contract Mine is Ownable {
     onlyIfCostSet
     {
 
-        ResourceCost[] memory completedTransfers;
+        ResourceCost[] memory completedTransfers = new ResourceCost[](costs.length);
 
         for (uint256 i; i < costs.length; i++) {
             ResourceCost storage cost = costs[i];
@@ -133,7 +133,7 @@ contract Mine is Ownable {
         return (instance.buildTime, instance.lastMiningTime, instance.mined);
     }
 
-    function revertTransfers(ResourceCost[] memory transfers) internal {
+    function revertTransfers(ResourceCost[] memory transfers) internal pure {
         for (uint256 i; i < transfers.length; i++) {
             // todo
         }

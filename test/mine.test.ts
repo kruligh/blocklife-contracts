@@ -193,6 +193,10 @@ contract('Mine', (accounts: Address[]) => {
             mineHelper = new MineHelper(owner);
             mine = await mineHelper.createContract();
             assert.isOk(mine);
+            await resource.addMintingManager(mine.address, {from: owner});
+            assert.isTrue(await resource.isMintingManager(mine.address));
+            await resource.addMintingManager(owner, {from: owner});
+            assert.isTrue(await resource.isMintingManager(owner));
         });
 
         it('Should revert if costs not set', async () => {
@@ -209,10 +213,14 @@ contract('Mine', (accounts: Address[]) => {
             beforeEach(async () => {
                 costResources = [resource.address];
                 costAmounts = [new BigNumber(500)];
-                await mine.setCost(costResources, costAmounts);
+                await mine.setCost(costResources, costAmounts, {from: owner});
+                await resource.mint(buyer, costAmounts[0], {from: owner});
             });
 
-            it('Should build', async () => {
+            it('Should build if resource approved', async () => {
+                await resource.mint(buyer, costAmounts[0], {from: owner});
+                await resource.approve(mine.address, costAmounts[0], {from: buyer});
+
                 await mine.buildInstance({from: buyer});
                 assertNumberEqual(await mine.getInstances({from: buyer}), new BigNumber(1));
                 const mineInstance = MineHelper.parseMineInstance(await mine.getInstance(0, {from: buyer}));
@@ -224,18 +232,28 @@ contract('Mine', (accounts: Address[]) => {
 
             });
 
-            it.skip('Should build when cost multiple resources', async () => {
-
-            });
-
             it.skip('Should transfer token resources', async () => {
 
             });
 
-            it.skip('Should revert if not afford', async () => {
+            it.skip('Should emit BuildReverted if not afford', async () => {
 
             });
 
+            describe('multi resources cost', async () => {
+
+                it.skip('Should build when cost multiple resources', async () => {
+
+                });
+
+                it.skip('Should transfer multiple resources', async () => {
+
+                });
+
+                it.skip('Should revert all transfers if one resource transfer fail', async () => {
+
+                });
+            });
         });
 
     });
