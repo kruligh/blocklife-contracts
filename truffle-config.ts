@@ -14,11 +14,5 @@ export = {
             network_id: '*',
             port
         }
-    },
-    solc: {
-        optimizer: {
-            enabled: true,
-            runs: 200
-        }
     }
 };

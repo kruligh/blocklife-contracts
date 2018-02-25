@@ -53,7 +53,8 @@ declare module 'project' {
         }
 
         interface Mintable {
-            isMintingManager(addr: Address): Promise<boolean>;
+            isMintingManager(addr: Address,
+                             options?: TransactionOptions): Promise<boolean>;
 
             addMintingManager(addr: Address,
                               options?: TransactionOptions): Promise<TransactionResult>;
@@ -75,11 +76,21 @@ declare module 'project' {
         }
 
         interface Resource extends ERC20, Mintable {
+        }
 
+        interface ResourceCost {
+            resource: Address;
+            amount: BigNumber;
         }
 
         interface Mine extends ContractBase {
+            setCost(resources: Address[],
+                    amounts: AnyNumber[],
+                    options?: TransactionOptions): Promise<void>;
 
+            getCostResourcesCount(): Promise<BigNumber>;
+
+            getCost(index: AnyNumber): Promise<any[]>;
         }
 
         interface MigrationsContract extends Contract<Migrations> {
@@ -94,7 +105,7 @@ declare module 'project' {
         }
 
         interface MineContract extends Contract<Mine> {
-            'new'(options?: TransactionOptions): Promise<Resource>;
+            'new'(options?: TransactionOptions): Promise<Mine>;
         }
 
         interface ProjectArtifacts extends TruffleArtifacts {

@@ -4,8 +4,6 @@ import {Ownable} from "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 
 contract ResourceTokenIfc {
-    function isTransferManager(address addr) public returns (bool);
-
     function isMintingManager(address addr) public returns (bool);
 }
 
@@ -25,28 +23,34 @@ contract Mine is Ownable {
 
     mapping(address => MineInstance) private instancesByOwner;
 
-    ResourceCost[] private resourceCosts;
+    ResourceCost[] private cost;
 
     modifier onlyEqual(uint256 a, uint256 b) {
         require(a == b);
         _;
     }
 
-    function Mine(ResourceTokenIfc[] resources, uint256[] amounts)
+    modifier onlyWithoutPrices(){
+        require(cost.length == 0);
+        _;
+    }
+
+
+    function setCost(ResourceTokenIfc[] resources, uint256[] amounts)
     public
+    onlyOwner
+    onlyWithoutPrices
     onlyEqual(resources.length, amounts.length)
     {
         for (uint256 i = 0; i < resources.length; i++) {
             require(resources[i] != address(0));
             require(amounts[i] > 0);
-            require(resources[i].isTransferManager(this));
             require(resources[i].isMintingManager(this));
 
-            resourceCosts.push(ResourceCost({
+            cost.push(ResourceCost({
                 resource : resources[i],
                 amount : amounts[i]
                 }));
-
         }
     }
 
@@ -59,4 +63,11 @@ contract Mine is Ownable {
             });
     }
 
+    function getCostResourcesCount() public view returns (uint256){
+        return cost.length;
+    }
+
+    function getCost(uint8 idx) public view returns (address resource, uint256 amount){
+        return (cost[idx].resource, cost[idx].amount);
+    }
 }

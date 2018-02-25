@@ -14,11 +14,15 @@ declare const contract: ContractContextDefinition;
 contract('ResourceToken', (accounts: Address[]) => {
     const owner = accounts[9];
     let resource: Resource;
-    const resourceHelper = new ResourceHelper(owner);
+    let resourceHelper: ResourceHelper;
+
+    beforeEach(async () => {
+        resourceHelper = new ResourceHelper(owner);
+    });
 
     describe('#ctor', () => {
         it('should create contract', async () => {
-            resource = await resourceHelper.createResourceContract();
+            resource = await resourceHelper.createContract();
             assert.isOk(resource);
         });
     });
@@ -30,7 +34,7 @@ contract('ResourceToken', (accounts: Address[]) => {
         );
 
         beforeEach(async () => {
-            ctx.token = await resourceHelper.createResourceContract();
+            ctx.token = await resourceHelper.createContract();
         });
 
         describe('MintableResource', () => {

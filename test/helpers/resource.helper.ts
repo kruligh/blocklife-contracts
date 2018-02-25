@@ -8,15 +8,13 @@ declare const artifacts: ProjectArtifacts;
 const ResourceContract = artifacts.require('./ResourceToken.sol');
 
 export class ResourceHelper {
-
-    constructor(private owner: Address,
-                private tokenName = 'token1',
-                private tokenSymbol = 't1',
-                private tokenDecimals = new BigNumber(18)) {
-
+    public constructor(private owner: Address,
+                       private tokenName = 'tokenName1',
+                       private tokenSymbol = 'tknCode1',
+                       private tokenDecimals = new BigNumber(18)) {
     }
 
-    public async createResourceContract(options?: Partial<ResourceContractOptions>): Promise<Resource> {
+    public async createContract(options?: Partial<ResourceContractOptions>): Promise<Resource> {
         return await ResourceContract.new(
             propOr(this.tokenName, 'name', options),
             propOr(this.tokenSymbol, 'symbol', options),
