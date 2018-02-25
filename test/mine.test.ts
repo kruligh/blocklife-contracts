@@ -3,7 +3,10 @@ import {assert} from 'chai';
 import BigNumber from 'bignumber.js';
 import {CostSet, Mine, MineContract, ProjectArtifacts, Resource} from 'project';
 import {ContractContextDefinition} from 'truffle';
-import {assertNumberEqual, assertReverts, findLastLog, ZERO_ADDRESS} from './helpers/common.helper';
+import {
+    assertNumberAlmostEqual, assertNumberEqual, assertReverts, findLastLog, getNetworkTimestamp,
+    ZERO_ADDRESS
+} from './helpers/common.helper';
 import {MineHelper} from './helpers/mine.helper';
 import {ResourceHelper} from './helpers/resource.helper';
 
@@ -220,10 +223,13 @@ contract('Mine', (accounts: Address[]) => {
             it('Should build if resource approved', async () => {
                 await resource.mint(buyer, costAmounts[0], {from: owner});
                 await resource.approve(mine.address, costAmounts[0], {from: buyer});
+                const expectedBuildTime: BigNumber = await getNetworkTimestamp();
 
                 await mine.buildInstance({from: buyer});
+
                 assertNumberEqual(await mine.getInstances({from: buyer}), new BigNumber(1));
                 const mineInstance = MineHelper.parseMineInstance(await mine.getInstance(0, {from: buyer}));
+                assertNumberAlmostEqual(mineInstance.buildTime, expectedBuildTime, 1);
                 assertNumberEqual(mineInstance.buildTime, mineInstance.lastMiningTime);
                 assertNumberEqual(mineInstance.mined, new BigNumber(0));
             });

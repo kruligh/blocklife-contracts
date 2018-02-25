@@ -1,13 +1,15 @@
 import * as Web3 from 'web3';
 
-import { BigNumber } from 'bignumber.js';
-import { assert } from 'chai';
-import { findLast, propEq } from 'ramda';
-import { TransactionLog, TransactionResult } from 'truffle';
+import {BigNumber} from 'bignumber.js';
+import {assert} from 'chai';
+import {findLast, propEq} from 'ramda';
+import {TransactionLog, TransactionResult} from 'truffle';
 
-import { ETH_DECIMALS } from '../../utils/index';
+import {ETH_DECIMALS, Web3Utils} from '../../utils/index';
 
 declare const web3: Web3;
+
+const utils = new Web3Utils(web3);
 
 export const ZERO_ADDRESS = '0x' + '0'.repeat(40);
 
@@ -46,12 +48,10 @@ export function assertNumberEqual(actual: Web3.AnyNumber, expect: Web3.AnyNumber
     }
 }
 
-export function assertNumberAlmostEqual(
-    actual: Web3.AnyNumber,
-    expect: Web3.AnyNumber,
-    epsilon: Web3.AnyNumber,
-    decimals: number = 0
-) {
+export function assertNumberAlmostEqual(actual: Web3.AnyNumber,
+                                        expect: Web3.AnyNumber,
+                                        epsilon: Web3.AnyNumber,
+                                        decimals: number = 0) {
     const actualNum = new BigNumber(actual);
     const expectNum = new BigNumber(expect);
     const epsilonNum = new BigNumber(epsilon);
@@ -75,4 +75,8 @@ export function assertEtherEqual(actual: Web3.AnyNumber, expect: Web3.AnyNumber)
 
 export function findLastLog(trans: TransactionResult, event: string): TransactionLog {
     return findLast(propEq('event', event))(trans.logs);
+}
+
+export async function getNetworkTimestamp(): Promise<BigNumber> {
+    return (await utils.getBlock()).timestamp;
 }
