@@ -5,6 +5,8 @@ import {Ownable} from "zeppelin-solidity/contracts/ownership/Ownable.sol";
 
 contract ResourceTokenIfc {
     function isMintingManager(address addr) public returns (bool);
+
+    function transferFrom(address from, address to, uint256 value) public returns (bool);
 }
 
 
@@ -30,8 +32,13 @@ contract Mine is Ownable {
         _;
     }
 
-    modifier onlyWithoutCost(){
+    modifier onlyIfCostNotSet(){
         require(costs.length == 0);
+        _;
+    }
+
+    modifier onlyIfCostSet() {
+        require(costs.length > 0);
         _;
     }
 
@@ -51,7 +58,7 @@ contract Mine is Ownable {
     function setCost(ResourceTokenIfc[] resources, uint256[] amounts)
     public
     onlyOwner
-    onlyWithoutCost
+    onlyIfCostNotSet
     onlyEqual(resources.length, amounts.length)
     {
         for (uint256 i = 0; i < resources.length; i++) {
@@ -68,7 +75,24 @@ contract Mine is Ownable {
         CostSet();
     }
 
-    function buildInstance() public {
+    // todo Consider race condition/dao attack and reverting gas amount
+    function buildInstance()
+    public
+    onlyIfCostSet
+    {
+
+        ResourceCost[] memory completedTransfers;
+
+        for (uint256 i; i < costs.length; i++) {
+            ResourceCost storage cost = costs[i];
+            bool transferResult = cost.resource.transferFrom(msg.sender, this, cost.amount);
+            if (transferResult == false) {
+                require(false);
+                revertTransfers(completedTransfers);
+            }
+            completedTransfers[i] = cost;
+
+        }
 
         instancesByOwner[msg.sender].push(MineInstance({
             buildTime : now,
@@ -107,5 +131,11 @@ contract Mine is Ownable {
     {
         MineInstance memory instance = instancesByOwner[msg.sender][idx];
         return (instance.buildTime, instance.lastMiningTime, instance.mined);
+    }
+
+    function revertTransfers(ResourceCost[] memory transfers) internal {
+        for (uint256 i; i < transfers.length; i++) {
+            // todo
+        }
     }
 }

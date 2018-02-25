@@ -183,7 +183,7 @@ contract('Mine', (accounts: Address[]) => {
         });
     });
 
-    describe('#build', () => {
+    describe.only('#build', () => {
         const buyer = notOwner;
 
         beforeEach(async () => {
@@ -195,27 +195,46 @@ contract('Mine', (accounts: Address[]) => {
             assert.isOk(mine);
         });
 
-        it('Should build', async () => {
-            await mine.buildInstance({from: buyer});
-            assertNumberEqual(await mine.getInstances({from: buyer}), new BigNumber(1));
-            const mineInstance = MineHelper.parseMineInstance(await mine.getInstance(0, {from: buyer}));
-            assertNumberEqual(mineInstance.buildTime, mineInstance.lastMiningTime);
-            assertNumberEqual(mineInstance.mined, new BigNumber(0));
+        it('Should revert if costs not set', async () => {
+            await assertReverts(async () => {
+                await mine.buildInstance({from: buyer});
+            });
         });
 
-        it.skip('Should emit InstanceBuild', async () => {
+        describe('cost set', async () => {
 
-        });
+            let costResources: Address[];
+            let costAmounts: BigNumber[];
 
-        it.skip('Should build when cost multiple resources', async () => {
+            beforeEach(async () => {
+                costResources = [resource.address];
+                costAmounts = [new BigNumber(500)];
+                await mine.setCost(costResources, costAmounts);
+            });
 
-        });
+            it('Should build', async () => {
+                await mine.buildInstance({from: buyer});
+                assertNumberEqual(await mine.getInstances({from: buyer}), new BigNumber(1));
+                const mineInstance = MineHelper.parseMineInstance(await mine.getInstance(0, {from: buyer}));
+                assertNumberEqual(mineInstance.buildTime, mineInstance.lastMiningTime);
+                assertNumberEqual(mineInstance.mined, new BigNumber(0));
+            });
 
-        it.skip('Should transfer token resources', async () => {
+            it.skip('Should emit InstanceBuild', async () => {
 
-        });
+            });
 
-        it.skip('Should revert if not afford', async () => {
+            it.skip('Should build when cost multiple resources', async () => {
+
+            });
+
+            it.skip('Should transfer token resources', async () => {
+
+            });
+
+            it.skip('Should revert if not afford', async () => {
+
+            });
 
         });
 
