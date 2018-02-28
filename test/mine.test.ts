@@ -1,11 +1,15 @@
 import {assert} from 'chai';
 
 import BigNumber from 'bignumber.js';
-import {CostSet, Mine, MineContract, ProjectArtifacts, Resource} from 'project';
+import {CostSet, Mine, Resource} from 'project';
 import {ContractContextDefinition} from 'truffle';
 import {
-    assertNumberAlmostEqual, assertNumberEqual, assertReverts, findLastLog, getNetworkTimestamp,
-    ZERO_ADDRESS
+  assertNumberAlmostEqual,
+  assertNumberEqual,
+  assertReverts,
+  findLastLog,
+  getNetworkTimestamp,
+  ZERO_ADDRESS
 } from './helpers/common.helper';
 import {MineHelper} from './helpers/mine.helper';
 import {ResourceHelper} from './helpers/resource.helper';
@@ -13,248 +17,305 @@ import {ResourceHelper} from './helpers/resource.helper';
 declare const contract: ContractContextDefinition;
 
 contract('Mine', (accounts: Address[]) => {
-    const owner = accounts[9];
-    const notOwner = accounts[8];
-    let resource: Resource;
-    let resourceHelper: ResourceHelper;
-    let mine: Mine;
-    let mineHelper: MineHelper;
+  const owner = accounts[9];
+  const notOwner = accounts[8];
+  let resourceA: Resource;
+  let resourceB: Resource;
+  let resourceC: Resource;
+  let resourceHelper: ResourceHelper;
+  let mine: Mine;
+  let mineHelper: MineHelper;
 
-    describe('#ctor', () => {
-        it('should create contract', async () => {
-            mineHelper = new MineHelper(owner);
-            mine = await mineHelper.createContract();
+  beforeEach(async () => {
+    mineHelper = new MineHelper(owner);
+    mine = await mineHelper.createContract();
+    assert.isOk(mine);
 
-            assert.isOk(mine);
+    resourceHelper = new ResourceHelper(owner);
+
+    resourceA = await createResource(resourceHelper, owner, mine);
+    resourceB = await createResource(resourceHelper, owner, mine);
+    resourceC = await createResource(resourceHelper, owner, mine);
+  });
+
+  describe('#ctor', () => {
+    it('should create contract', async () => {
+      assert.isOk(mine);
+    });
+  });
+
+  describe('#setCost', () => {
+
+    describe('is minting manager', () => {
+
+      beforeEach(async () => {
+        assert.isTrue(await resourceA.isMintingManager(mine.address));
+      });
+
+      it('should set cost', async () => {
+        const amount = new BigNumber(500);
+        await mine.setCost([resourceA.address], [amount], {from: owner});
+
+        const resourceCost = MineHelper.parseResourceCost(await mine.getCost(0));
+
+        assertNumberEqual(resourceCost.amount, amount);
+        assert.equal(resourceCost.resource, resourceA.address);
+      });
+
+      it('should emit CostSet', async () => {
+        const tx = await mine.setCost([resourceA.address], [new BigNumber(500)], {from: owner});
+
+        assert.isOk(findLastLog(tx, 'CostSet') as CostSet);
+      });
+
+      it('should set multiple resources cost', async () => {
+        const mineCosts = new Map<Resource, BigNumber>();
+        mineCosts.set(resourceA, new BigNumber(500));
+        mineCosts.set(resourceB, new BigNumber(5));
+        mineCosts.set(resourceC, new BigNumber(5));
+
+        await mine.setCost(
+          toArray<Resource>(mineCosts.keys()).map(res => res.address),
+          toArray<BigNumber>(mineCosts.values()),
+          {from: owner});
+
+        const costCount = (await mine.getCosts()).toNumber();
+        assertNumberEqual(costCount, new BigNumber(mineCosts.size));
+
+        for (let i = 0; i < costCount; i++) {
+          const actualCost = MineHelper.parseResourceCost(await mine.getCost(i));
+          assertNumberEqual(actualCost.amount, findCostByAddress(mineCosts, actualCost.resource));
+        }
+      });
+
+      it('should revert if not owner', async () => {
+        await assertReverts(async () => {
+          await mine.setCost([resourceA.address], [new BigNumber(500)], {
+            from: notOwner
+          });
         });
+      });
+
+      it('should revert if price already set', async () => {
+        await mine.setCost([resourceA.address], [new BigNumber(500)], {
+          from: owner
+        });
+
+        await assertReverts(async () => {
+          await mine.setCost([resourceA.address], [new BigNumber(500)], {
+            from: owner
+          });
+        });
+      });
+
+      it('should revert if amounts.length>resources.length', async () => {
+        await assertReverts(async () => {
+          await mine.setCost([resourceA.address], [new BigNumber(500), new BigNumber(600)], {from: owner});
+        });
+      });
+
+      it('should revert if resources.length>amounts.length', async () => {
+        const resource2 = await resourceHelper.createContract();
+        await resource2.addMintingManager(mine.address, {from: owner});
+        assert.isTrue(await resource2.isMintingManager(mine.address));
+
+        await assertReverts(async () => {
+          await mine.setCost([resourceA.address, resource2.address], [new BigNumber(500)], {from: owner});
+        });
+      });
+
+      it('should revert if resource address is zero', async () => {
+        await assertReverts(async () => {
+          await mine.setCost([ZERO_ADDRESS], [new BigNumber(500)], {
+            from: owner
+          });
+        });
+      });
+
+      it('should revert if amount is zero', async () => {
+        await assertReverts(async () => {
+          await mine.setCost([resourceA.address], [new BigNumber(0)], {
+            from: owner
+          });
+        });
+      });
     });
 
-    describe('#setCost', () => {
+    it('should revert if is not minting manager', async () => {
+      const resource = await resourceHelper.createContract();
+      assert.isFalse(await resource.isMintingManager(mine.address));
+
+      await assertReverts(async () => {
+        await mine.setCost([resource.address], [new BigNumber(500)], {
+          from: owner
+        });
+      });
+    });
+
+  });
+
+  describe('#getCost', async () => {
+    it('Should revert if index array out of bounds', async () => {
+      await assertReverts(async () => {
+        await mine.getCost(3);
+      });
+    });
+  });
+
+  describe('#getInstance', async () => {
+    const buyer = notOwner;
+
+    it('Should revert if index array out of bounds', async () => {
+      await assertReverts(async () => {
+        await mine.getInstance(3, {from: buyer});
+      });
+    });
+  });
+
+  describe('#build', async () => {
+    const buyer = notOwner;
+
+    it('Should revert if costs not set', async () => {
+      await assertReverts(async () => {
+        await mine.buildInstance({from: buyer});
+      });
+    });
+
+    describe('cost set', async () => {
+
+      let mineCosts: Map<Resource, BigNumber>;
+
+      beforeEach(async () => {
+        mineCosts = new Map<Resource, BigNumber>();
+        mineCosts.set(resourceA, new BigNumber(500));
+        mineCosts.set(resourceB, new BigNumber(5));
+        mineCosts.set(resourceC, new BigNumber(5));
+
+        await mine.setCost(
+          toArray<Resource>(mineCosts.keys()).map(res => res.address),
+          toArray<BigNumber>(mineCosts.values()),
+          {from: owner});
+      });
+
+      it('Should emit BuildRejected if cant afford', async () => {
+        const buildTx = await mine.buildInstance({from: buyer});
+
+        const buildRevertedEvent = findLastLog(buildTx, 'BuildRejected');
+        assert.isOk(buildRevertedEvent);
+      });
+
+      it('Should not transfer any resources if there is lack of first one', async () => {
+        await testCantAffordResourceByIndex(findByIndex(mineCosts.keys(), 0));
+      });
+
+      it('Should not transfer any resources if there is lack of last one', async () => {
+        await testCantAffordResourceByIndex(findByIndex(mineCosts.keys(), mineCosts.size - 1));
+      });
+
+      it('Should not transfer any resources if there is lack of middle one', async () => {
+        await testCantAffordResourceByIndex(findByIndex(mineCosts.keys(), Math.floor(mineCosts.size / 2)));
+      });
+
+      async function testCantAffordResourceByIndex(lackingResource: Resource) {
+        for (const [resource, amount] of mineCosts) {
+          if (resource !== lackingResource) {
+            await resource.mint(buyer, amount, {from: owner});
+            assertNumberEqual(await resource.balanceOf(buyer), amount);
+            await resource.approve(mine.address, amount, {from: buyer});
+          }
+        }
+
+        const buildTx = await mine.buildInstance({from: buyer});
+
+        const buildRevertedEvent = findLastLog(buildTx, 'BuildRejected');
+        assert.isOk(buildRevertedEvent);
+
+        for (const [resource, amount] of mineCosts) {
+          if (resource !== lackingResource) {
+            assertNumberEqual(await resource.balanceOf(buyer), amount);
+          }
+        }
+      }
+
+      describe('buyer can afford', async () => {
+
         beforeEach(async () => {
-            resourceHelper = new ResourceHelper(owner);
-            resource = await resourceHelper.createContract();
-            assert.isOk(resource);
-            mineHelper = new MineHelper(owner);
-            mine = await mineHelper.createContract();
-            assert.isOk(mine);
+          for (const [resource, amount] of mineCosts) {
+            await resource.mint(buyer, amount, {from: owner});
+            assertNumberEqual(await resource.balanceOf(buyer), amount);
+            await resource.approve(mine.address, amount, {from: buyer});
+          }
         });
 
-        it('should revert if is not minting manager', async () => {
-            assert.isFalse(await resource.isMintingManager(mine.address));
+        it('Should build', async () => {
+          const expectedBuildTime: BigNumber = await getNetworkTimestamp();
 
-            await assertReverts(async () => {
-                await mine.setCost([resource.address], [new BigNumber(500)], {
-                    from: owner
-                });
-            });
+          await mine.buildInstance({from: buyer});
+
+          assertNumberEqual(await mine.getInstances({from: buyer}), new BigNumber(1));
+          const mineInstance = MineHelper.parseMineInstance(await mine.getInstance(0, {from: buyer}));
+          assertNumberAlmostEqual(mineInstance.buildTime, expectedBuildTime, 1);
+          assertNumberEqual(mineInstance.buildTime, mineInstance.lastMiningTime);
+          assertNumberEqual(mineInstance.mined, new BigNumber(0));
         });
 
-        describe('is minting manager', () => {
+        it('Should emit InstanceBuild event', async () => {
+          const buildInstanceTx = await mine.buildInstance({from: buyer});
 
-            beforeEach(async () => {
-                await resource.addMintingManager(mine.address, {from: owner});
-                assert.isTrue(await resource.isMintingManager(mine.address));
-            });
-
-            it('should set cost', async () => {
-                const amount = new BigNumber(500);
-                await mine.setCost([resource.address], [amount], {from: owner});
-
-                const resourceCost = MineHelper.parseResourceCost(await mine.getCost(0));
-
-                assertNumberEqual(resourceCost.amount, amount);
-                assert.equal(resourceCost.resource, resource.address);
-            });
-
-            it('should emit CostSet', async () => {
-                const tx = await mine.setCost([resource.address], [new BigNumber(500)], {from: owner});
-
-                assert.isOk(findLastLog(tx, 'CostSet') as CostSet);
-            });
-
-            it('should set multiple resources cost', async () => {
-                const amountResourceA = new BigNumber(500);
-                const resourceA = resource;
-                await resourceA.addMintingManager(mine.address, {from: owner});
-                assert.isTrue(await resourceA.isMintingManager(mine.address));
-
-                const amountResourceB = new BigNumber(3);
-                const resourceB = await resourceHelper.createContract();
-                await resourceB.addMintingManager(mine.address, {from: owner});
-                assert.isTrue(await resourceB.isMintingManager(mine.address));
-
-                await mine.setCost([resourceA.address, resourceB.address], [amountResourceA, amountResourceB], {
-                    from: owner
-                });
-
-                const resourceACost = MineHelper.parseResourceCost(await mine.getCost(0));
-                assertNumberEqual(resourceACost.amount, amountResourceA);
-                assert.equal(resourceACost.resource, resourceA.address);
-
-                const resourceBCost = MineHelper.parseResourceCost(await mine.getCost(1));
-                assertNumberEqual(resourceBCost.amount, amountResourceB);
-                assert.equal(resourceBCost.resource, resourceB.address);
-            });
-
-            it('should revert if not owner', async () => {
-                await assertReverts(async () => {
-                    await mine.setCost([resource.address], [new BigNumber(500)], {
-                        from: notOwner
-                    });
-                });
-            });
-
-            it('should revert if price already set', async () => {
-                await mine.setCost([resource.address], [new BigNumber(500)], {
-                    from: owner
-                });
-
-                await assertReverts(async () => {
-                    await mine.setCost([resource.address], [new BigNumber(500)], {
-                        from: owner
-                    });
-                });
-            });
-
-            it('should revert if amounts.length>resources.length', async () => {
-                await assertReverts(async () => {
-                    await mine.setCost([resource.address], [new BigNumber(500), new BigNumber(600)], {from: owner});
-                });
-            });
-
-            it('should revert if resources.length>amounts.length', async () => {
-                const resource2 = await resourceHelper.createContract();
-                await resource2.addMintingManager(mine.address, {from: owner});
-                assert.isTrue(await resource2.isMintingManager(mine.address));
-
-                await assertReverts(async () => {
-                    await mine.setCost([resource.address, resource2.address], [new BigNumber(500)], {from: owner});
-                });
-            });
-
-            it('should revert if resource address is zero', async () => {
-                await assertReverts(async () => {
-                    await mine.setCost([ZERO_ADDRESS], [new BigNumber(500)], {
-                        from: owner
-                    });
-                });
-            });
-
-            it('should revert if amount is zero', async () => {
-                await assertReverts(async () => {
-                    await mine.setCost([resource.address], [new BigNumber(0)], {
-                        from: owner
-                    });
-                });
-            });
+          const instanceBuildEvent = findLastLog(buildInstanceTx, 'InstanceBuild');
+          assert.isOk(instanceBuildEvent);
         });
 
+        it('Should transfer token resources', async () => {
+          for (const [resource, amount] of mineCosts) {
+            assertNumberEqual(await resource.balanceOf(buyer), amount);
+            assertNumberEqual(await resource.balanceOf(mine.address), new BigNumber(0));
+          }
+
+          await mine.buildInstance({from: buyer});
+
+          for (const [resource, amount] of mineCosts) {
+            assertNumberEqual(await resource.balanceOf(buyer), new BigNumber(0));
+            assertNumberEqual(await resource.balanceOf(mine.address), amount);
+          }
+        });
+      });
     });
-
-    describe('#getCost', async () => {
-
-        beforeEach(async () => {
-            mineHelper = new MineHelper(owner);
-            mine = await mineHelper.createContract();
-        });
-
-        it('Should revert if index array out of bounds', async () => {
-            await assertReverts(async () => {
-                await mine.getCost(3);
-            });
-        });
-    });
-
-    describe('#getInstance', async () => {
-        const buyer = notOwner;
-
-        beforeEach(async () => {
-            mineHelper = new MineHelper(owner);
-            mine = await mineHelper.createContract();
-        });
-
-        it('Should revert if index array out of bounds', async () => {
-            await assertReverts(async () => {
-                await mine.getInstance(3, {from: buyer});
-            });
-        });
-    });
-
-    describe('#build', () => {
-        const buyer = notOwner;
-
-        beforeEach(async () => {
-            resourceHelper = new ResourceHelper(owner);
-            resource = await resourceHelper.createContract();
-            assert.isOk(resource);
-            mineHelper = new MineHelper(owner);
-            mine = await mineHelper.createContract();
-            assert.isOk(mine);
-            await resource.addMintingManager(mine.address, {from: owner});
-            assert.isTrue(await resource.isMintingManager(mine.address));
-            await resource.addMintingManager(owner, {from: owner});
-            assert.isTrue(await resource.isMintingManager(owner));
-        });
-
-        it('Should revert if costs not set', async () => {
-            await assertReverts(async () => {
-                await mine.buildInstance({from: buyer});
-            });
-        });
-
-        describe('cost set', async () => {
-
-            let costResources: Address[];
-            let costAmounts: BigNumber[];
-
-            beforeEach(async () => {
-                costResources = [resource.address];
-                costAmounts = [new BigNumber(500)];
-                await mine.setCost(costResources, costAmounts, {from: owner});
-                await resource.mint(buyer, costAmounts[0], {from: owner});
-            });
-
-            it('Should build if resource approved', async () => {
-                await resource.mint(buyer, costAmounts[0], {from: owner});
-                await resource.approve(mine.address, costAmounts[0], {from: buyer});
-                const expectedBuildTime: BigNumber = await getNetworkTimestamp();
-
-                await mine.buildInstance({from: buyer});
-
-                assertNumberEqual(await mine.getInstances({from: buyer}), new BigNumber(1));
-                const mineInstance = MineHelper.parseMineInstance(await mine.getInstance(0, {from: buyer}));
-                assertNumberAlmostEqual(mineInstance.buildTime, expectedBuildTime, 1);
-                assertNumberEqual(mineInstance.buildTime, mineInstance.lastMiningTime);
-                assertNumberEqual(mineInstance.mined, new BigNumber(0));
-            });
-
-            it.skip('Should emit InstanceBuild', async () => {
-
-            });
-
-            it.skip('Should transfer token resources', async () => {
-
-            });
-
-            it.skip('Should emit BuildReverted if not afford', async () => {
-
-            });
-
-            describe('multi resources cost', async () => {
-
-                it.skip('Should build when cost multiple resources', async () => {
-
-                });
-
-                it.skip('Should transfer multiple resources', async () => {
-
-                });
-
-                it.skip('Should revert all transfers if one resource transfer fail', async () => {
-
-                });
-            });
-        });
-
-    });
+  });
 });
+
+async function createResource(resourceHelper: ResourceHelper, owner: Address, mine: Mine) {
+  const resource = await resourceHelper.createContract();
+  assert.isOk(resource);
+  await resource.addMintingManager(mine.address, {from: owner});
+  assert.isTrue(await resource.isMintingManager(mine.address));
+  await resource.addMintingManager(owner, {from: owner});
+  assert.isTrue(await resource.isMintingManager(owner));
+  return resource;
+}
+
+function toArray<T>(iterator: IterableIterator<T>): T[] {
+  let result: T[] = [];
+  for (const item of iterator) {
+    result = [...result, item];
+  }
+  return result;
+}
+
+function findByIndex<T>(iterator: IterableIterator<T>, index: number): T {
+  let i = 0;
+  for (const item of iterator) {
+    if (i === index) {
+      return item;
+    }
+    i++;
+  }
+}
+
+function findCostByAddress(mineCosts: Map<Resource, BigNumber>, addr: Address): BigNumber {
+  for (const [resource, amount] of mineCosts) {
+    if (resource.address === addr) {
+      return amount;
+    }
+  }
+}

@@ -7,6 +7,9 @@ contract ResourceTokenIfc {
     function isMintingManager(address addr) public returns (bool);
 
     function transferFrom(address from, address to, uint256 value) public returns (bool);
+
+    function allowance(address owner, address spender) public view returns (uint256);
+
 }
 
 
@@ -54,6 +57,7 @@ contract Mine is Ownable {
 
     event CostSet();
     event InstanceBuild();
+    event BuildRejected(address resource);
 
     function setCost(ResourceTokenIfc[] resources, uint256[] amounts)
     public
@@ -75,23 +79,24 @@ contract Mine is Ownable {
         CostSet();
     }
 
-    // todo Consider race condition/dao attack and reverting gas amount
+    /* todo Consider scenario:
+    - erc20 retruns correct allwoance
+    - sender decrease allow amount
+    - transferFrom reverts and previous resource token transfers will be lost
+    Workaround could be implement transferFrom without reverts in this scenario
+    but then it would works fine only with erc20 with this implementation
+    Or maybe its impossible cause buildInstance transaction is atomic? Im not sure*/
     function buildInstance()
     public
     onlyIfCostSet
     {
+        if (isAfford() == false) {
+            return;
+        }
 
-        ResourceCost[] memory completedTransfers = new ResourceCost[](costs.length);
-
-        for (uint256 i; i < costs.length; i++) {
-            ResourceCost storage cost = costs[i];
-            bool transferResult = cost.resource.transferFrom(msg.sender, this, cost.amount);
-            if (transferResult == false) {
-                require(false);
-                revertTransfers(completedTransfers);
-            }
-            completedTransfers[i] = cost;
-
+        for (uint256 j; j < costs.length; j++) {
+            ResourceCost storage cost = costs[j];
+            require(cost.resource.transferFrom(msg.sender, this, cost.amount));
         }
 
         instancesByOwner[msg.sender].push(MineInstance({
@@ -133,9 +138,14 @@ contract Mine is Ownable {
         return (instance.buildTime, instance.lastMiningTime, instance.mined);
     }
 
-    function revertTransfers(ResourceCost[] memory transfers) internal pure {
-        for (uint256 i; i < transfers.length; i++) {
-            // todo
+    function isAfford() internal returns(bool){
+        for (uint256 i; i < costs.length; i++) {
+            ResourceCost storage cost = costs[i];
+            if (cost.resource.allowance(msg.sender, this) < cost.amount) {
+                BuildRejected(cost.resource);
+                return false;
+            }
         }
+        return true;
     }
 }
