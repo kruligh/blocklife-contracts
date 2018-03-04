@@ -1,5 +1,6 @@
 import BigNumber from 'bignumber.js';
-import { ProjectArtifacts, Resource } from 'project';
+import {assert} from 'chai';
+import {Mine, ProjectArtifacts, Resource} from 'project';
 import { propOr } from 'ramda';
 import { AnyNumber } from 'web3';
 
@@ -23,6 +24,17 @@ export class ResourceHelper {
             { from: propOr(this.owner, 'from', options) }
         );
     }
+
+  public async createResource(owner: Address, mine: Mine) {
+    const resource = await this.createContract();
+    assert.isOk(resource);
+    await resource.addMintingManager(mine.address, {from: owner});
+    assert.isTrue(await resource.isMintingManager(mine.address));
+    await resource.addMintingManager(owner, {from: owner});
+    assert.isTrue(await resource.isMintingManager(owner));
+    return resource;
+  }
+
 }
 
 export interface ResourceContractOptions {

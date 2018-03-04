@@ -1,9 +1,9 @@
-import { Mine, MineInstance, ProjectArtifacts, ResourceCost } from 'project';
+import { GoldMine, MineInstance, ProjectArtifacts, ResourceCost } from 'project';
 import { propOr } from 'ramda';
 
 declare const artifacts: ProjectArtifacts;
 
-const MineContract = artifacts.require('./Mine.sol');
+const MineContract = artifacts.require('./GoldMine.sol');
 
 export class MineHelper {
     public static parseResourceCost(args: any[]): ResourceCost {
@@ -23,7 +23,7 @@ export class MineHelper {
 
     public constructor(private owner: Address) {}
 
-    public async createContract(options?: Partial<MineContractOptions>): Promise<Mine> {
+    public async createContract(options?: Partial<MineContractOptions>): Promise<GoldMine> {
         return await MineContract.new({
             from: propOr(this.owner, 'from', options)
         });

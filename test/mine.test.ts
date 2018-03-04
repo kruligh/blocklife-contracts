@@ -1,7 +1,7 @@
 import {assert} from 'chai';
 
 import BigNumber from 'bignumber.js';
-import {CostSet, Mine, Resource} from 'project';
+import {CostSet, GoldMine, Resource} from 'project';
 import {ContractContextDefinition} from 'truffle';
 import {
   assertNumberAlmostEqual,
@@ -16,14 +16,14 @@ import {ResourceHelper} from './helpers/resource.helper';
 
 declare const contract: ContractContextDefinition;
 
-contract('Mine', (accounts: Address[]) => {
+contract('Abstract Mine', (accounts: Address[]) => {
   const owner = accounts[9];
   const notOwner = accounts[8];
   let resourceA: Resource;
   let resourceB: Resource;
   let resourceC: Resource;
   let resourceHelper: ResourceHelper;
-  let mine: Mine;
+  let mine: GoldMine;
   let mineHelper: MineHelper;
 
   beforeEach(async () => {
@@ -33,9 +33,9 @@ contract('Mine', (accounts: Address[]) => {
 
     resourceHelper = new ResourceHelper(owner);
 
-    resourceA = await createResource(resourceHelper, owner, mine);
-    resourceB = await createResource(resourceHelper, owner, mine);
-    resourceC = await createResource(resourceHelper, owner, mine);
+    resourceA = await resourceHelper.createResource(owner, mine);
+    resourceB = await resourceHelper.createResource(owner, mine);
+    resourceC = await resourceHelper.createResource(owner, mine);
   });
 
   describe('#ctor', () => {
@@ -172,7 +172,7 @@ contract('Mine', (accounts: Address[]) => {
     });
   });
 
-  describe('#build', async () => {
+  describe('#buildInstance', async () => {
     const buyer = notOwner;
 
     it('Should revert if costs not set', async () => {
@@ -283,16 +283,6 @@ contract('Mine', (accounts: Address[]) => {
     });
   });
 });
-
-async function createResource(resourceHelper: ResourceHelper, owner: Address, mine: Mine) {
-  const resource = await resourceHelper.createContract();
-  assert.isOk(resource);
-  await resource.addMintingManager(mine.address, {from: owner});
-  assert.isTrue(await resource.isMintingManager(mine.address));
-  await resource.addMintingManager(owner, {from: owner});
-  assert.isTrue(await resource.isMintingManager(owner));
-  return resource;
-}
 
 function toArray<T>(iterator: IterableIterator<T>): T[] {
   let result: T[] = [];

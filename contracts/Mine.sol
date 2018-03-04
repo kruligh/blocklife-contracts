@@ -1,6 +1,7 @@
 pragma solidity 0.4.19;
 
 import {Ownable} from "zeppelin-solidity/contracts/ownership/Ownable.sol";
+import {SafeMath} from "zeppelin-solidity/contracts/math/SafeMath.sol";
 
 
 contract ResourceTokenIfc {
@@ -14,6 +15,10 @@ contract ResourceTokenIfc {
 
 
 contract Mine is Ownable {
+
+    uint256 constant public DAY_IN_SECONDS = 86400;
+
+    using SafeMath for uint256;
 
     struct MineInstance {
         uint256 buildTime;
@@ -90,8 +95,12 @@ contract Mine is Ownable {
     public
     onlyIfCostSet
     {
-        if (isAfford() == false) {
-            return;
+        for (uint256 i; i < costs.length; i++) {
+            ResourceCost storage costToCheck = costs[i];
+            if (costToCheck.resource.allowance(msg.sender, this) < costToCheck.amount) {
+                BuildRejected(costToCheck.resource);
+                return;
+            }
         }
 
         for (uint256 j; j < costs.length; j++) {
@@ -138,14 +147,14 @@ contract Mine is Ownable {
         return (instance.buildTime, instance.lastMiningTime, instance.mined);
     }
 
-    function isAfford() internal returns(bool){
-        for (uint256 i; i < costs.length; i++) {
-            ResourceCost storage cost = costs[i];
-            if (cost.resource.allowance(msg.sender, this) < cost.amount) {
-                BuildRejected(cost.resource);
-                return false;
-            }
+    function getAvailableResource() public view returns (uint256) {
+    uint256 result = 0;
+    for(uint256 i = 0; i < getInstances(); i++){
+        MineInstance storage mineInstance = instancesByOwner[msg.sender][i];
+        result = result.add(calculateMined(mineInstance));
         }
-        return true;
     }
+
+    function calculateMined(MineInstance storage mineInstance) internal view returns (uint256);
+
 }
