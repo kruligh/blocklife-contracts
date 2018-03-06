@@ -3,7 +3,7 @@ import {Deployer} from 'truffle';
 
 declare const artifacts: ProjectArtifacts;
 
-const Resource = artifacts.require('./Resource.sol');
+const Resource = artifacts.require('./ResourceToken.sol');
 
 async function deploy(deployer: Deployer) {
   const resName = 'Gold';
