@@ -1,5 +1,5 @@
 {
-  "name": "adventurer-exchange",
+  "name": "blocklife-contracts",
   "version": "0.0.0",
   "main": "index.js",
   "scripts": {
@@ -31,7 +31,8 @@
     "solhint": "^1.1.10",
     "truffle": "4.0.6",
     "tslint": "^5.8.0",
-    "typescript": "^2.6.2"
+    "typescript": "^2.6.2",
+    "web3-typescript-typings": "^0.7.2"
   },
   "dependencies": {
     "zeppelin-solidity": "^1.6.0"
