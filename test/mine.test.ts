@@ -1,7 +1,7 @@
 import {assert} from 'chai';
 
 import BigNumber from 'bignumber.js';
-import {CostSet, GoldMine, Resource} from 'project';
+import {CostSet, GoldMine, Resource} from 'blocklife-contracts';
 import {ContractContextDefinition} from 'truffle';
 import {
   assertNumberAlmostEqual,
@@ -13,6 +13,7 @@ import {
 } from './helpers/common.helper';
 import {MineHelper} from './helpers/mine.helper';
 import {ResourceHelper} from './helpers/resource.helper';
+import {Address} from 'common';
 
 declare const contract: ContractContextDefinition;
 

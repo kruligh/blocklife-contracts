@@ -1,4 +1,5 @@
-import { Resource } from 'project';
+import { Resource } from 'blocklife-contracts';
+import { Address } from 'common';
 
 export class ResourceTestContext {
     public token: Resource;

@@ -2,7 +2,8 @@ import { assert } from 'chai';
 
 import * as Web3 from 'web3';
 
-import { MintedEvent, MintingManagerApprovedEvent, TransferEvent } from 'project';
+import {Address} from 'common';
+import { MintedEvent, MintingManagerApprovedEvent, TransferEvent } from 'blocklife-contracts';
 import { assertNumberEqual, assertReverts, findLastLog, ZERO_ADDRESS } from '../helpers/common.helper';
 import { ResourceTestContext } from './context';
 

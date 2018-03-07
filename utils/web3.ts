@@ -1,6 +1,7 @@
 import {BigNumber} from 'bignumber.js';
 import * as Web3 from 'web3';
 
+import {Address} from 'common';
 import {promisify} from './common';
 
 export class Web3Utils {

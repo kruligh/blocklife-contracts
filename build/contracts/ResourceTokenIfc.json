@@ -76,9 +76,9 @@
   "sourceMap": "",
   "deployedSourceMap": "",
   "source": "pragma solidity 0.4.19;\n\nimport {Ownable} from \"zeppelin-solidity/contracts/ownership/Ownable.sol\";\nimport {SafeMath} from \"zeppelin-solidity/contracts/math/SafeMath.sol\";\n\n\ncontract ResourceTokenIfc {\n    function isMintingManager(address addr) public returns (bool);\n\n    function transferFrom(address from, address to, uint256 value) public returns (bool);\n\n    function allowance(address owner, address spender) public view returns (uint256);\n\n}\n\n\ncontract Mine is Ownable {\n\n    uint256 constant public DAY_IN_SECONDS = 86400;\n\n    using SafeMath for uint256;\n\n    struct MineInstance {\n        uint256 buildTime;\n        uint256 lastMiningTime;\n        uint256 mined;\n    }\n\n    struct ResourceCost {\n        ResourceTokenIfc resource;\n        uint256 amount;\n    }\n\n    mapping(address => MineInstance[]) private instancesByOwner;\n\n    ResourceCost[] private costs;\n\n    modifier onlyEqual(uint256 a, uint256 b) {\n        require(a == b);\n        _;\n    }\n\n    modifier onlyIfCostNotSet(){\n        require(costs.length == 0);\n        _;\n    }\n\n    modifier onlyIfCostSet() {\n        require(costs.length > 0);\n        _;\n    }\n\n    modifier onlyIfCostExists(uint256 idx) {\n        require(idx < costs.length);\n        _;\n    }\n\n    modifier onlyIfInstanceExists(uint256 idx) {\n        require(idx < instancesByOwner[msg.sender].length);\n        _;\n    }\n\n    event CostSet();\n    event InstanceBuild();\n    event BuildRejected(address resource);\n\n    function setCost(ResourceTokenIfc[] resources, uint256[] amounts)\n    public\n    onlyOwner\n    onlyIfCostNotSet\n    onlyEqual(resources.length, amounts.length)\n    {\n        for (uint256 i = 0; i < resources.length; i++) {\n            require(resources[i] != address(0));\n            require(amounts[i] > 0);\n            require(resources[i].isMintingManager(this));\n\n            costs.push(ResourceCost({\n                resource : resources[i],\n                amount : amounts[i]\n                }));\n        }\n\n        CostSet();\n    }\n\n    /* todo Consider scenario:\n    - erc20 retruns correct allwoance\n    - sender decrease allow amount\n    - transferFrom reverts and previous resource token transfers will be lost\n    Workaround could be implement transferFrom without reverts in this scenario\n    but then it would works fine only with erc20 with this implementation\n    Or maybe its impossible cause buildInstance transaction is atomic? Im not sure*/\n    function buildInstance()\n    public\n    onlyIfCostSet\n    {\n        for (uint256 i; i < costs.length; i++) {\n            ResourceCost storage costToCheck = costs[i];\n            if (costToCheck.resource.allowance(msg.sender, this) < costToCheck.amount) {\n                BuildRejected(costToCheck.resource);\n                return;\n            }\n        }\n\n        for (uint256 j; j < costs.length; j++) {\n            ResourceCost storage cost = costs[j];\n            require(cost.resource.transferFrom(msg.sender, this, cost.amount));\n        }\n\n        instancesByOwner[msg.sender].push(MineInstance({\n            buildTime : now,\n            lastMiningTime : now,\n            mined : 0\n            }));\n\n        InstanceBuild();\n    }\n\n    function getCosts() public view returns (uint256){\n        return costs.length;\n    }\n\n    function getCost(uint8 idx)\n    public\n    view\n    onlyIfCostExists(idx)\n    returns (address resource, uint256 amount){\n        return (costs[idx].resource, costs[idx].amount);\n    }\n\n    function getInstances() public view returns (uint256) {\n        return instancesByOwner[msg.sender].length;\n    }\n\n    function getInstance(uint256 idx)\n    public\n    view\n    onlyIfInstanceExists(idx)\n    returns (\n        uint256 buildTime,\n        uint256 lastMinedTime,\n        uint256 mined\n    )\n    {\n        MineInstance memory instance = instancesByOwner[msg.sender][idx];\n        return (instance.buildTime, instance.lastMiningTime, instance.mined);\n    }\n\n    function getAvailableResource() public view returns (uint256) {\n    uint256 result = 0;\n    for(uint256 i = 0; i < getInstances(); i++){\n        MineInstance storage mineInstance = instancesByOwner[msg.sender][i];\n        result = result.add(calculateMined(mineInstance));\n        }\n    }\n\n    function calculateMined(MineInstance storage mineInstance) internal view returns (uint256);\n\n}\n",
-  "sourcePath": "/home/kruligh/src/adventurer/contracts/contracts/Mine.sol",
+  "sourcePath": "/home/kruligh/src/dom/blocklife-contracts/contracts/Mine.sol",
   "ast": {
-    "absolutePath": "/home/kruligh/src/adventurer/contracts/contracts/Mine.sol",
+    "absolutePath": "/home/kruligh/src/dom/blocklife-contracts/contracts/Mine.sol",
     "exportedSymbols": {
       "Mine": [
         499
@@ -5368,7 +5368,7 @@
     "src": "0:4309:2"
   },
   "legacyAST": {
-    "absolutePath": "/home/kruligh/src/adventurer/contracts/contracts/Mine.sol",
+    "absolutePath": "/home/kruligh/src/dom/blocklife-contracts/contracts/Mine.sol",
     "exportedSymbols": {
       "Mine": [
         499
@@ -10663,5 +10663,5 @@
   },
   "networks": {},
   "schemaVersion": "2.0.0",
-  "updatedAt": "2018-03-06T19:51:57.160Z"
+  "updatedAt": "2018-03-07T08:38:17.137Z"
 }

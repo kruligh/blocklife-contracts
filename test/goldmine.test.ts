@@ -1,8 +1,9 @@
 import {assert} from 'chai';
-import {GoldMine, Resource} from 'project';
+import {GoldMine, Resource} from 'blocklife-contracts';
 import {ContractContextDefinition} from 'truffle';
 import {MineHelper} from './helpers/mine.helper';
 import {ResourceHelper} from './helpers/resource.helper';
+import {Address} from 'common';
 
 declare const contract: ContractContextDefinition;
 

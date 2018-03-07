@@ -1,5 +1,6 @@
-import { GoldMine, MineInstance, ProjectArtifacts, ResourceCost } from 'project';
+import { GoldMine, MineInstance, ProjectArtifacts, ResourceCost } from 'blocklife-contracts';
 import { propOr } from 'ramda';
+import {Address} from 'common';
 
 declare const artifacts: ProjectArtifacts;
 

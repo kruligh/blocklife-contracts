@@ -1,8 +1,8 @@
 import BigNumber from 'bignumber.js';
 import {assert} from 'chai';
-import {Mine, ProjectArtifacts, Resource} from 'project';
+import {Mine, ProjectArtifacts, Resource} from 'blocklife-contracts';
 import { propOr } from 'ramda';
-import { AnyNumber } from 'web3';
+import {Address, AnyNumber} from 'common';
 
 declare const artifacts: ProjectArtifacts;
 

@@ -5,6 +5,7 @@ import {assert} from 'chai';
 import {findLast, propEq} from 'ramda';
 import {TransactionLog, TransactionResult} from 'truffle';
 
+import {AnyNumber} from 'common';
 import {ETH_DECIMALS, Web3Utils} from '../../utils/index';
 
 declare const web3: Web3;
@@ -33,7 +34,7 @@ export function assertRevertError(error: { message: string }) {
     }
 }
 
-export function assertNumberEqual(actual: Web3.AnyNumber, expect: Web3.AnyNumber, decimals: number = 0) {
+export function assertNumberEqual(actual: AnyNumber, expect: AnyNumber, decimals: number = 0) {
     const actualNum = new BigNumber(actual);
     const expectNum = new BigNumber(expect);
 
@@ -48,9 +49,9 @@ export function assertNumberEqual(actual: Web3.AnyNumber, expect: Web3.AnyNumber
     }
 }
 
-export function assertNumberAlmostEqual(actual: Web3.AnyNumber,
-                                        expect: Web3.AnyNumber,
-                                        epsilon: Web3.AnyNumber,
+export function assertNumberAlmostEqual(actual: AnyNumber,
+                                        expect: AnyNumber,
+                                        epsilon: AnyNumber,
                                         decimals: number = 0) {
     const actualNum = new BigNumber(actual);
     const expectNum = new BigNumber(expect);
@@ -69,7 +70,7 @@ export function assertNumberAlmostEqual(actual: Web3.AnyNumber,
     }
 }
 
-export function assertEtherEqual(actual: Web3.AnyNumber, expect: Web3.AnyNumber) {
+export function assertEtherEqual(actual: AnyNumber, expect: AnyNumber) {
     return assertNumberEqual(actual, expect, ETH_DECIMALS);
 }
 

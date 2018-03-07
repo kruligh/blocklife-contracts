@@ -1,4 +1,4 @@
-import {ProjectArtifacts} from 'project';
+import {ProjectArtifacts} from 'blocklife-contracts';
 import {Deployer} from 'truffle';
 
 declare const artifacts: ProjectArtifacts;

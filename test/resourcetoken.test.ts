@@ -1,10 +1,11 @@
 import { assert } from 'chai';
 
-import { Resource } from 'project';
+import { Resource } from 'blocklife-contracts';
 import { ContractContextDefinition } from 'truffle';
 import { ResourceHelper } from './helpers/resource.helper';
 import { ResourceTestContext } from './resource/context';
 import { testAddMintingManager, testMint } from './resource/mintableresource.test';
+import {Address} from 'common';
 
 declare const contract: ContractContextDefinition;
 

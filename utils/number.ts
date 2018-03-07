@@ -1,5 +1,5 @@
 import { BigNumber } from 'bignumber.js';
-import { AnyNumber } from 'web3';
+import {AnyNumber} from 'common';
 
 export const ETH_DECIMALS = 18;
 

@@ -1,3 +1,5 @@
+import {Callback} from 'common';
+
 export function promisify<T>(fn: (cb: Callback<T>) => void) {
     return new Promise<T>((resolve, reject) =>
         fn((err: Error | null, res: T) => {
